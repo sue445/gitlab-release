@@ -2,6 +2,14 @@ gitlab-release
 ====
 Tool to create gitlab revisions with file upload.Useful for CI publish tasks.
 
+
+### Forked 
+
+Forked from the upstream repo to:
+
+* Add a "Release Artifacts" to the release description
+* Stop the artifacts bulleted list from having two lines separation
+
 Usage
 ----
 This program is intended to be used in a GitLab CI job in a Runner with Docker.
