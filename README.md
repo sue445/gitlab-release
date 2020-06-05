@@ -9,6 +9,7 @@ Forked from the upstream repo to:
 
 * Add a "Release Artifacts" to the release description
 * Stop the artifacts bulleted list from having two lines separation
+* Add `curl` in docker image (so, eg, posts to chat chanels can be made)
 
 Usage
 ----
