@@ -66,18 +66,30 @@ class GitlabRelease:
 
     def set_release(self, message, update=False):
         url = "/".join(
-            (self.api_project_url, "repository/tags", self.get_tag(), "release")
+            (self.api_project_url, "releases")
         )
         headers = {"Content-Type": "application/json"}
         body = {"description": message}
-        method = "put" if update else "post"
+
+        if update:
+            method = 'put'
+            url += '/' + self.get_tag()
+        else:
+            method = 'post'
+            body['tag_name'] = self.get_tag()
+
+        print(f"Body: {body}")
         res = self.request(method, url, headers=headers, json=body)
+        print(res.json())
         return res.json()
 
     def fetch_release(self):
-        url = "/".join((self.api_project_url, "repository/tags", self.get_tag()))
-        res = self.request("get", url)
-        return res.json()["release"]
+        url = "/".join((self.api_project_url, "releases", self.get_tag()))
+        try:
+            res = self.request("get", url)
+            return res.json()["description"]
+        except:
+            return None
 
     def request(self, method, url, **kwargs):
         if "headers" not in kwargs:
@@ -96,11 +108,10 @@ class GitlabRelease:
     def create_release(self, message, files):
         links = [message, "\n", "## Release Artifacts", "\n"]
         links.extend(["* " + self.post_file(filename) for filename in files])
-        existing_release = self.fetch_release()
+        existing_release_desc = self.fetch_release()
         update = False
-        if existing_release is not None:
-            links = [existing_release["description"], "---"] + links
-
+        if existing_release_desc is not None:
+            links = [existing_release_desc, "---"] + links
             update = True
         return self.set_release("\n".join(links), update)
 
