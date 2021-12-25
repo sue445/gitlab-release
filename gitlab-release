@@ -62,7 +62,7 @@ class GitlabRelease:
     def post_file(self, filename):
         url = "/".join((self.api_project_url, "uploads"))
         files = {"file": open(filename, "rb")}
-        res = self.request("post", url, files=files, verify=self.verify_ssl)
+        res = self.request("post", url, files=files)
         return res.json()["markdown"]
 
     def set_release(self, message, update=False):
@@ -80,14 +80,14 @@ class GitlabRelease:
             body['tag_name'] = self.get_tag()
 
         print(f"Body: {body}")
-        res = self.request(method, url, headers=headers, json=body, verify=self.verify_ssl)
+        res = self.request(method, url, headers=headers, json=body)
         print(res.json())
         return res.json()
 
     def fetch_release(self):
         url = "/".join((self.api_project_url, "releases", self.get_tag()))
         try:
-            res = self.request("get", url, verify=self.verify_ssl)
+            res = self.request("get", url)
             return res.json()["description"]
         except:
             return None
