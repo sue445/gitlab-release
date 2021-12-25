@@ -13,11 +13,12 @@ class GitlabReleaseError(RuntimeError):
 
 
 class GitlabRelease:
-    def __init__(self, debug=False):
+    def __init__(self, debug=False, ignore_ssl=False):
         self.env = {}
+        self.debug = debug
+        self.verify_ssl = not ignore_ssl
         self.fetch_all_env()
         self.api_project_url = self.get_api_project_url()
-        self.debug = debug
 
     def fetch_env_var(self, name, msg):
         if name not in self.env:
@@ -61,7 +62,7 @@ class GitlabRelease:
     def post_file(self, filename):
         url = "/".join((self.api_project_url, "uploads"))
         files = {"file": open(filename, "rb")}
-        res = self.request("post", url, files=files)
+        res = self.request("post", url, files=files, verify=self.verify_ssl)
         return res.json()["markdown"]
 
     def set_release(self, message, update=False):
@@ -79,14 +80,14 @@ class GitlabRelease:
             body['tag_name'] = self.get_tag()
 
         print(f"Body: {body}")
-        res = self.request(method, url, headers=headers, json=body)
+        res = self.request(method, url, headers=headers, json=body, verify=self.verify_ssl)
         print(res.json())
         return res.json()
 
     def fetch_release(self):
         url = "/".join((self.api_project_url, "releases", self.get_tag()))
         try:
-            res = self.request("get", url)
+            res = self.request("get", url, verify=self.verify_ssl)
             return res.json()["description"]
         except:
             return None
@@ -99,7 +100,7 @@ class GitlabRelease:
             print(url)
             if "body" in kwargs["headers"]:
                 print(kwargs["headers"]["body"])
-        res = requests.request(method, url, **kwargs)
+        res = requests.request(method, url, verify=self.verify_ssl, **kwargs)
         res.raise_for_status()
         if self.debug:
             print(res.content)
@@ -169,9 +170,12 @@ the previous step.
     parser.add_argument(
         "-d", "--debug", action="store_true", help="Print debug messages"
     )
+    parser.add_argument(
+        "-i", "--ignore_ssl", action="store_true", help="Ignore SSL connection verification"
+    )
     args = parser.parse_args()
     try:
-        release = GitlabRelease(args.debug)
+        release = GitlabRelease(args.debug, args.ignore_ssl)
         info = release.create_release(args.message, args.files)
         print("Release: {tag_name} created.\n{description}".format_map(info))
     except GitlabReleaseError as err:
