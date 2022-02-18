@@ -107,8 +107,10 @@ class GitlabRelease:
         return res
 
     def create_release(self, message, files):
-        links = [message, "\n", "## Release Artifacts", "\n"]
-        links.extend(["* " + self.post_file(filename) for filename in files])
+        links = [message]
+        if files:
+            links.extend(["\n", "## Release Artifacts", "\n"])
+            links.extend(["* " + self.post_file(filename) for filename in files])
         existing_release_desc = self.fetch_release()
         update = False
         if existing_release_desc is not None:
